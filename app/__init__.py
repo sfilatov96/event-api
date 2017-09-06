@@ -1,9 +1,11 @@
 from flask import Flask, abort, request, jsonify
 import pymongo
 
-app = Flask(__name__)
 
-conn = pymongo.MongoClient(host="localhost", port=27017)
+app = Flask(__name__)
+app.config.from_object('app.config.Config')
+
+conn = pymongo.MongoClient(host=app.config.get("MONGO_HOST"), port=app.config.get("MONGO_PORT"))
 conn.db.event_coll.create_index('type', unique=True)
 
 
