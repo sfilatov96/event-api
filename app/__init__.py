@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config.from_object('app.config.Config')
 
 conn = pymongo.MongoClient(host=app.config.get("MONGO_HOST"), port=app.config.get("MONGO_PORT"))
-conn.db.event_coll.create_index('type', unique=True)
+conn.db.event_coll.create_index('type')
 
 
 @app.route('/v1/start', methods=['POST'])
@@ -15,7 +15,7 @@ def start():
     if not doc.get("type"):
         abort(400)
 
-    if conn.db.event_coll.find_one({"type": doc.get("type")}):
+    if conn.db.event_coll.find_one({"$and": [{"type": doc.get("type")}, {"state": 0}]}):
         return jsonify({"message": "Already exists!"})
 
     doc.update({"state": 0})
