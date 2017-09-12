@@ -16,10 +16,12 @@ def start():
         abort(400)
 
     if conn.db.event_coll.find_one({"$and": [{"type": doc.get("type")}, {"state": 0}]}):
-        return jsonify({"message": "Already exists!"})
+        return jsonify({"message": "Created success!"})
 
     doc.update({"state": 0})
-    conn.db.event_coll.save(doc)
+    result = conn.db.event_coll.insert_one(doc)
+    if not result.inserted_id:
+        return abort(503)
 
     return jsonify({"message": "Created success!"})
 
@@ -30,5 +32,9 @@ def finish():
     if not event.get("type"):
         abort(400)
 
-    conn.db.event_coll.update_one({"type": event.get("type")}, {'$set': {'state': 1}})
+    obj = conn.db.event_coll.update_one({"type": event.get("type")}, {'$set': {'state': 1}})
+
+    if obj.modified_count != 1:
+        return abort(503)
+
     return jsonify({"message": "Finished success!"})
